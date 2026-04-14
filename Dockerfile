@@ -11,7 +11,12 @@ RUN echo "CACHE_BUST=${CACHE_BUST}" \
 
 WORKDIR /opt/mongo-express
 
-RUN npm ci --omit=dev
+# Upstream does not always ship a lockfile on every branch/state, so support both paths.
+RUN if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then \
+      npm ci --omit=dev; \
+    else \
+      npm install --omit=dev; \
+    fi
 
 EXPOSE 8081
 
