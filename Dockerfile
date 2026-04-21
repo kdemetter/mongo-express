@@ -11,12 +11,14 @@ RUN echo "CACHE_BUST=${CACHE_BUST}" \
 
 WORKDIR /opt/mongo-express
 
-# Upstream does not always ship a lockfile on every branch/state, so support both paths.
+# Upstream build scripts execute during install and require dev dependencies.
+# Install all deps first, then prune to production-only runtime deps.
 RUN if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then \
-      npm ci --omit=dev; \
+      npm ci; \
     else \
-      npm install --omit=dev; \
-    fi
+      npm install; \
+    fi \
+    && npm prune --omit=dev
 
 EXPOSE 8081
 
