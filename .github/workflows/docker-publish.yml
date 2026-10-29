@@ -33,7 +33,6 @@ jobs:
           tags: |
             type=raw,value=latest
             type=schedule,pattern={{date 'YYYYMMDD'}}
-            type=sha
 
       - name: Build and push image
         uses: docker/build-push-action@v6

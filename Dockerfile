@@ -11,10 +11,16 @@ RUN echo "CACHE_BUST=${CACHE_BUST}" \
 
 WORKDIR /opt/mongo-express
 
-# Install full dependencies to ensure webpack is available for the upstream prepublish step,
-# then prune dev dependencies to keep the final image runtime-focused.
-RUN npm install --include=dev \
+# Upstream build scripts execute during install and require dev dependencies.
+# Install all deps first, then prune to production-only runtime deps.
+RUN if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then \
+      npm ci --include=dev; \
+    else \
+      npm install --include=dev; \
+    fi \
     && npm prune --omit=dev
+
+ENV VCAP_APP_HOST=0.0.0.0
 
 EXPOSE 8081
 
