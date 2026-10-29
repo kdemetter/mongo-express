@@ -1,6 +1,8 @@
 FROM node:lts-alpine
 
-RUN apk add --no-cache git
+RUN apk add --no-cache git \
+    && npm install --global corepack \
+    && corepack enable
 
 WORKDIR /opt
 
@@ -11,14 +13,11 @@ RUN echo "CACHE_BUST=${CACHE_BUST}" \
 
 WORKDIR /opt/mongo-express
 
-# Upstream build scripts execute during install and require dev dependencies.
-# Install all deps first, then prune to production-only runtime deps.
-RUN if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then \
-      npm ci --include=dev; \
-    else \
-      npm install --include=dev; \
-    fi \
-    && npm prune --omit=dev
+# Use upstream's pinned Yarn release and lockfile, including its resolutions.
+# Test-only binaries are not needed to build the production assets.
+RUN CYPRESS_INSTALL_BINARY=0 MONGOMS_DISABLE_POSTINSTALL=1 yarn install --immutable \
+    && yarn build \
+    && yarn workspaces focus --production
 
 ENV VCAP_APP_HOST=0.0.0.0
 
