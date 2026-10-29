@@ -14,11 +14,13 @@ WORKDIR /opt/mongo-express
 # Upstream build scripts execute during install and require dev dependencies.
 # Install all deps first, then prune to production-only runtime deps.
 RUN if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then \
-      npm ci; \
+      npm ci --include=dev; \
     else \
-      npm install; \
+      npm install --include=dev; \
     fi \
     && npm prune --omit=dev
+
+ENV VCAP_APP_HOST=0.0.0.0
 
 EXPOSE 8081
 
